@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="popup.js" type="module"></script>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>Gotoinc</h1>
+    <label for="start-date">Start Date:</label>
+    <input type="date" id="start-date" />
+    <label for="end-date">End Date:</label>
+    <input type="date" id="end-date" />
+    <br />
+    <div id="freelancers-container">
+      <div class="hint">Select freelancers to include in the statistics:</div>
+      <!-- Checkboxes for freelancers will be dynamically added here -->
+    </div>
+    <button id="fetch-btn">Fetch statistics</button>
+  </body>
+</html>
