@@ -7,6 +7,9 @@ export async function handleFetchButtonClick(
   endDateInput,
   freelancers
 ) {
+  const fetchStatBtn = document.getElementById("fetch-stat-btn"); // Reference to the button
+  const originalText = fetchStatBtn.textContent; // Save the original button text
+
   const startDate = startDateInput.value;
   const endDate = endDateInput.value;
 
@@ -29,6 +32,9 @@ export async function handleFetchButtonClick(
   const { url } = tab;
 
   if (url.includes("upwork.com/nx/my-stats")) {
+    fetchStatBtn.disabled = true;
+    fetchStatBtn.textContent = "Loading...";
+
     logMessage("Fetching Upwork stats...");
     for (const freelancer of selectedFreelancers) {
       logMessage(`Fetching stats for ${freelancer.name}...`);
@@ -45,6 +51,10 @@ export async function handleFetchButtonClick(
         logMessage(`Failed to fetch stats for ${freelancer.name}.`);
       }
     }
+
+    fetchStatBtn.disabled = false;
+    fetchStatBtn.textContent = originalText;
+
     alert(
       "Stats fetched and sent to the backend successfully. Check the console for details."
     );
