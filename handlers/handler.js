@@ -16,7 +16,7 @@ export async function handleFetchButtonClick(
   }
 
   const selectedFreelancers = freelancers.filter((freelancer) => {
-    const checkbox = document.getElementById(`freelancer-${freelancer.id}`);
+    const checkbox = document.getElementById(`freelancer-${freelancer.uid}`);
     return checkbox.checked;
   });
 
@@ -26,28 +26,33 @@ export async function handleFetchButtonClick(
   }
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const url = tab.url;
+  const { url } = tab;
 
   if (url.includes("upwork.com/nx/my-stats")) {
     logMessage("Fetching Upwork stats...");
     for (const freelancer of selectedFreelancers) {
-      logMessage(`Fetching stats for ${freelancer.full_name}...`);
-      const result = await parseUpworkStats(startDate, endDate, freelancer.id);
+      logMessage(`Fetching stats for ${freelancer.name}...`);
+      const result = await parseUpworkStats(startDate, endDate, freelancer.uid);
       logMessage(result);
       if (result) {
-        logMessage(`Stats fetched successfully for ${freelancer.full_name}.`);
-        await sendStatsToBackend(result);
+        logMessage(`Stats fetched successfully for ${freelancer.name}.`);
+        try {
+          await sendStatsToBackend(result, freelancer);
+        } catch (error) {
+          logMessage(`Error sending stats for ${freelancer.name}:`, error);
+        }
       } else {
-        logMessage(`Failed to fetch stats for ${freelancer.full_name}.`);
+        logMessage(`Failed to fetch stats for ${freelancer.name}.`);
       }
     }
-  } else {
-    if (
-      confirm(
-        "Please navigate to the Upwork My Stats page. Would you like to go there now?"
-      )
-    ) {
-      window.open("https://www.upwork.com/nx/my-stats/", "_blank");
-    }
+    alert(
+      "Stats fetched and sent to the backend successfully. Check the console for details."
+    );
+  } else if (
+    confirm(
+      "Please navigate to the Upwork My Stats page. Would you like to go there now?"
+    )
+  ) {
+    window.open("https://www.upwork.com/nx/my-stats/", "_blank");
   }
 }
