@@ -36,3 +36,27 @@ export async function sendStatsToBackend(stats, freelancer) {
     return false;
   }
 }
+
+export async function sendConnectionsToBackend(result) {
+  const payload = {
+    connectsTransactions: result.connectsTransactions,
+    persons: result.persons,
+  };
+  try {
+    const response = await fetch(`${BACKEND_URL}/connect_transactions/import`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to send data: ${response.status}`);
+    }
+
+    console.log("Connections sent successfully:", connections);
+  } catch (error) {
+    console.error("Error sending connections to backend:", error);
+  }
+}

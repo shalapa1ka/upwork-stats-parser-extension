@@ -5,7 +5,7 @@ export async function parseUpworkStats(startDate, endDate, freelancerId) {
   const variableToPass = await fetchCookies();
 
   variableToPass.start_date = startDate;
-  variableToPass.end_date = new Date().toISOString().replace(/\.\d{3}Z$/, "");
+  variableToPass.end_date = endDate.toISOString().replace(/\.\d{3}Z$/, "");
   variableToPass.freelancer_id = freelancerId;
 
   const [{ result }] = await chrome.scripting.executeScript({
@@ -65,7 +65,7 @@ export async function parseUpworkStats(startDate, endDate, freelancerId) {
   return result;
 }
 
-export async function parseFreelancerList() {
+export async function parseFreelancerList(startDate, endDate) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const variableToPass = await fetchCookies();
 
@@ -117,6 +117,110 @@ export async function parseFreelancerList() {
           throw new Error(result.errors[0].message);
         }
         return result.data.currentContext.teams[0].contractors;
+      } catch (error) {
+        console.error("Error sending POST request:", error);
+      }
+    },
+    args: [variableToPass],
+  });
+  return result;
+}
+
+export async function parseUpworkConnectionHistory(
+  startDate,
+  endDate,
+  lessThanId
+) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const variableToPass = await fetchCookies();
+  variableToPass.start_date = startDate;
+  variableToPass.end_date = endDate;
+  variableToPass.lessThanId = lessThanId;
+
+  const [{ result }] = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: async (data) => {
+      try {
+        const response = await fetch(
+          "https://www.upwork.com/api/graphql/v1?alias=get-connectshistory-list",
+          {
+            headers: {
+              accept: "*/*",
+              "accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6",
+              authorization: `bearer ${data.oauthToken}`,
+              "content-type": "application/json",
+              priority: "u=1, i",
+              "sec-ch-ua":
+                '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
+              "sec-ch-ua-arch": '"x86"',
+              "sec-ch-ua-bitness": '"64"',
+              "sec-ch-ua-full-version": '"135.0.7049.114"',
+              "sec-ch-ua-full-version-list":
+                '"Google Chrome";v="135.0.7049.114", "Not-A.Brand";v="8.0.0.0", "Chromium";v="135.0.7049.114"',
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-model": '""',
+              "sec-ch-ua-platform": '"Linux"',
+              "sec-ch-ua-platform-version": '"6.11.0"',
+              "sec-ch-viewport-width": "882",
+              "sec-fetch-dest": "empty",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-site": "same-origin",
+              "vnd-eo-parent-span-id": "b487ad8f-357f-4b12-adc8-3a81f401500b",
+              "vnd-eo-span-id": "634f5798-820f-4aa2-8b14-1568feeebe26",
+              "vnd-eo-trace-id": "93fa74c99861c054-WAW",
+              "vnd-eo-visitorid": data.visitorId,
+              "x-upwork-accept-language": "en-US",
+              "x-upwork-api-tenantid": data.currentOrganizationUid,
+              cookie: data.cookie,
+              Referer: "https://www.upwork.com/nx/plans/connects/history",
+              "Referrer-Policy": "origin-when-cross-origin",
+            },
+            body: JSON.stringify({
+              query: `query getConnectsHistoryList($lessThanId: ID, $reasonIds: [String], $typeIds: [String], $beginDate: String, $endDate: String) {
+                getConnectsHistoryList: connectsTransactionsHistoryV2(
+                  input: {lessThanId: $lessThanId, reasonIds: $reasonIds, typeIds: $typeIds, beginDate: $beginDate, endDate: $endDate, photo: true}
+                ) {
+                  connectsTransactions {
+                    id
+                    reasonId
+                    typeId
+                    timestamp
+                    amount
+                    runningTotal
+                    jobName
+                    jobOpeningKey
+                    applicantId
+                    loginId
+                  }
+                  persons {
+                    id
+                    fullName
+                    photoUrl
+                    nid
+                  }
+                }
+              }`,
+              variables: {
+                lessThanId: data.lessThanId || null,
+                beginDate: data.start_date,
+                endDate: data.end_date,
+                reasonIds: [],
+                typeIds: [],
+                photo: false,
+              },
+            }),
+            method: "POST",
+          }
+        );
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`);
+        }
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
+        }
+        return result.data.getConnectsHistoryList;
       } catch (error) {
         console.error("Error sending POST request:", error);
       }

@@ -9,14 +9,14 @@ export async function fetchCookies() {
   };
   const results = await getTargetCookies(".upwork.com", "/nx/my-stats");
   if (results.length === 0) {
-    logMessage("No matching cookies found.");
+    //logMessage("No matching cookies found.");
   } else {
     result.oauthToken = results[0].value;
-    logMessage(`OAuth Token: ${result["oauthToken"]}`);
+    //logMessage(`OAuth Token: ${result["oauthToken"]}`);
   }
   const allCookies = await getTargetCookies(".upwork.com");
   if (allCookies.length === 0) {
-    logMessage("No cookies found.");
+    //logMessage("No cookies found.");
   } else {
     result.visitorId = allCookies.find(
       (cookie) => cookie.name === "visitor_id"
@@ -28,17 +28,17 @@ export async function fetchCookies() {
       (cookie) => cookie.name === "user_uid"
     ).value;
 
-    logMessage(
-      `visitor_id: ${result.visitorId ? result.visitorId : "not found"}`
-    );
-    logMessage(
-      `current_organization_uid: ${
-        result.currentOrganizationUid
-          ? result.currentOrganizationUid
-          : "not found"
-      }`
-    );
-    logMessage(`user_uid: ${result.user_uid ? result.user_uid : "not found"}`);
+    // logMessage(
+    //   `visitor_id: ${result.visitorId ? result.visitorId : "not found"}`
+    // );
+    // logMessage(
+    //   `current_organization_uid: ${
+    //     result.currentOrganizationUid
+    //       ? result.currentOrganizationUid
+    //       : "not found"
+    //   }`
+    // );
+    // logMessage(`user_uid: ${result.user_uid ? result.user_uid : "not found"}`);
   }
   return result;
 }
