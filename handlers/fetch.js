@@ -5,7 +5,9 @@ export async function parseUpworkStats(startDate, endDate, freelancerId) {
   const variableToPass = await fetchCookies();
 
   variableToPass.start_date = startDate;
-  variableToPass.end_date = endDate.toISOString().replace(/\.\d{3}Z$/, "");
+  variableToPass.end_date = new Date(endDate)
+    .toISOString()
+    .replace(/\.\d{3}Z$/, "");
   variableToPass.freelancer_id = freelancerId;
 
   const [{ result }] = await chrome.scripting.executeScript({
